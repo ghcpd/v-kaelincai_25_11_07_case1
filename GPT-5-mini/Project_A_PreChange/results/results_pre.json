@@ -1,0 +1,87 @@
+[
+  {
+    "id": "normal",
+    "desc": "Normal case - immediate confirmed availability",
+    "result": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 12,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 12
+    },
+    "pass": true,
+    "duration": 2.0397067070007324
+  },
+  {
+    "id": "boundary_zero",
+    "desc": "Boundary case - quantity == 0",
+    "result": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0325889587402344
+  },
+  {
+    "id": "async_pending",
+    "desc": "Asynchronous pending case - availabilityStatus pending",
+    "result": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0324478149414062
+  },
+  {
+    "id": "invalid_input",
+    "desc": "Invalid input - missing regionId or non-string sku",
+    "result": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0322964191436768
+  },
+  {
+    "id": "high_latency",
+    "desc": "High latency / error case - v2 may timeout or 500",
+    "result": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 3,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 3
+    },
+    "pass": true,
+    "duration": 2.018481969833374
+  }
+]

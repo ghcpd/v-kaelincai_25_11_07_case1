@@ -1,0 +1,37 @@
+[
+  {
+    "id": "normal",
+    "desc": "Normal case - immediate confirmed availability",
+    "input": {"sku":"ABC123","regionId":"ap-sg-1","warehouseGroup":"WG-2"},
+    "expect_pre": {"http_status":200,"available":true,"quantity":12},
+    "expect_post": {"http_status":200,"available":true,"quantity":12}
+  },
+  {
+    "id": "boundary_zero",
+    "desc": "Boundary case - quantity == 0",
+    "input": {"sku":"ZERO01","regionId":"eu-west-1","warehouseGroup":"WG-1"},
+    "expect_pre": {"http_status":200,"available":false,"quantity":0},
+    "expect_post": {"http_status":200,"available":false,"quantity":0}
+  },
+  {
+    "id": "async_pending",
+    "desc": "Asynchronous pending case - availabilityStatus pending",
+    "input": {"sku":"PEND01","regionId":"ap-sg-1","warehouseGroup":"WG-2"},
+    "expect_pre": {"http_status":200,"available":false,"quantity":0},
+    "expect_post": {"http_status":200,"available":true,"quantity":7}
+  },
+  {
+    "id": "invalid_input",
+    "desc": "Invalid input - missing regionId or non-string sku",
+    "input": {"sku":12345},
+    "expect_pre": {"http_status":200,"available":false,"quantity":0},
+    "expect_post": {"http_status":0,"available":false,"quantity":0}
+  },
+  {
+    "id": "high_latency",
+    "desc": "High latency / error case - v2 may timeout or 500",
+    "input": {"sku":"SLOW01","regionId":"ap-sg-1","warehouseGroup":"WG-2"},
+    "expect_pre": {"http_status":200,"available":true,"quantity":3},
+    "expect_post": {"http_status":500,"available":false,"quantity":0}
+  }
+]
