@@ -1,0 +1,32 @@
+[
+  {
+    "id": "normal",
+    "description": "Normal case - v1 returns available",
+    "input": {"sku":"ABC123"},
+    "expected": {"http_status":200, "available":true, "quantity":12}
+  },
+  {
+    "id": "boundary_zero",
+    "description": "Boundary case - quantity 0",
+    "input": {"sku":"ZERO"},
+    "expected": {"http_status":200, "available":false, "quantity":0}
+  },
+  {
+    "id": "malformed",
+    "description": "Malformed input - non-string SKU",
+    "input": {"sku": 12345},
+    "expected": {"http_status":500, "available":false}
+  },
+  {
+    "id": "high_latency",
+    "description": "High latency case - delayed response",
+    "input": {"sku":"SLOW"},
+    "expected": {"http_status":200, "available":true, "quantity":1}
+  },
+  {
+    "id": "out_of_stock",
+    "description": "Out of stock - v1 reports quantity zero",
+    "input": {"sku":"OOS"},
+    "expected": {"http_status":200, "available":false, "quantity":0}
+  }
+]
