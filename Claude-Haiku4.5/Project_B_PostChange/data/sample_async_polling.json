@@ -1,0 +1,84 @@
+{
+  "test_case": "TC003",
+  "name": "Asynchronous/Partial Case - Pending Status with Polling",
+  "description": "v2 returns pending status requiring polling until final confirmation",
+  "scenario": "Regional inventory system experiences latency; v2 returns 202 Accepted",
+  "pre_change_sample": {
+    "request": {
+      "endpoint": "POST /api/v1/checkStock",
+      "payload": {
+        "sku": "GHI789",
+        "quantity": 10
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "sku": "GHI789",
+        "available": true,
+        "quantity": 25
+      },
+      "latency_ms": 150
+    }
+  },
+  "post_change_sample": {
+    "step_1_initial_request": {
+      "request": {
+        "endpoint": "POST /api/v2/stock/availability",
+        "payload": {
+          "sku": "GHI789",
+          "quantity": 10,
+          "regionId": "ap-sg-1",
+          "warehouseGroup": "WG-2"
+        }
+      },
+      "response": {
+        "status": 202,
+        "body": {
+          "sku": "GHI789",
+          "availabilityStatus": "pending",
+          "requestId": "req-12345678901234567890",
+          "pollAfter": 100
+        }
+      }
+    },
+    "step_2_polling": {
+      "request": {
+        "endpoint": "GET /api/v2/stock/availability/poll/req-12345678901234567890",
+        "headers": {
+          "X-Request-ID": "client-req-001"
+        }
+      },
+      "response_attempt_1": {
+        "status": 202,
+        "body": {
+          "error": "Still processing"
+        },
+        "latency_ms": 100
+      }
+    },
+    "step_3_polling_final": {
+      "response_attempt_2": {
+        "status": 200,
+        "body": {
+          "sku": "GHI789",
+          "available": true,
+          "quantity": 25,
+          "availabilityStatus": "confirmed",
+          "syncTimestamp": "2025-11-07T10:00:05Z"
+        },
+        "latency_ms": 100
+      },
+      "total_latency_ms": 350,
+      "polling_attempts": 2
+    }
+  },
+  "key_differences": [
+    "v1 is always synchronous (one request/response)",
+    "v2 supports eventual consistency with 202 Accepted + polling",
+    "v2 includes requestId for tracking async request",
+    "v2 provides pollAfter hint for retry timing",
+    "v2 includes syncTimestamp showing when data was synchronized",
+    "Total latency may be higher due to polling overhead"
+  ]
+}

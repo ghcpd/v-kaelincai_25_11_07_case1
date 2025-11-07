@@ -1,0 +1,43 @@
+{
+  "test_case": "TC001",
+  "name": "Normal Case - Immediate Confirmed Availability",
+  "description": "Standard inventory check returning immediate confirmed availability",
+  "pre_change_sample": {
+    "request": {
+      "endpoint": "POST /api/v1/checkStock",
+      "payload": {
+        "sku": "ABC123",
+        "quantity": 5
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "sku": "ABC123",
+        "available": true,
+        "quantity": 12
+      }
+    }
+  },
+  "post_change_sample": {
+    "request": {
+      "endpoint": "POST /api/v2/stock/availability",
+      "payload": {
+        "sku": "ABC123",
+        "quantity": 5,
+        "regionId": "ap-sg-1",
+        "warehouseGroup": "WG-2"
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "sku": "ABC123",
+        "available": true,
+        "quantity": 12,
+        "availabilityStatus": "confirmed",
+        "syncTimestamp": "2025-11-07T10:00:00Z"
+      }
+    }
+  }
+}

@@ -1,0 +1,309 @@
+{
+  "test_cases": [
+    {
+      "id": "TC001",
+      "name": "Normal Case - Immediate Confirmed Availability",
+      "description": "Standard inventory check returning immediate confirmed availability with full details",
+      "v1_api": {
+        "endpoint": "/api/v1/checkStock",
+        "method": "POST",
+        "input": {
+          "sku": "ABC123",
+          "quantity": 5
+        },
+        "expected_output": {
+          "sku": "ABC123",
+          "available": true,
+          "quantity": 12,
+          "status_code": 200
+        }
+      },
+      "v2_api": {
+        "endpoint": "/api/v2/stock/availability",
+        "method": "POST",
+        "input": {
+          "sku": "ABC123",
+          "quantity": 5,
+          "regionId": "ap-sg-1",
+          "warehouseGroup": "WG-2"
+        },
+        "expected_output": {
+          "sku": "ABC123",
+          "available": true,
+          "quantity": 12,
+          "availabilityStatus": "confirmed",
+          "syncTimestamp": "2025-11-07T10:00:00Z",
+          "status_code": 200
+        }
+      },
+      "acceptance_criteria": [
+        "v1 returns available=true with quantity >= 5",
+        "v2 returns availabilityStatus='confirmed' and correct params in request",
+        "Latency improvement expected or equivalent"
+      ]
+    },
+    {
+      "id": "TC002",
+      "name": "Boundary Case - Zero Quantity at Threshold",
+      "description": "Inventory quantity exactly at or below the requested amount, testing edge behavior",
+      "v1_api": {
+        "endpoint": "/api/v1/checkStock",
+        "method": "POST",
+        "input": {
+          "sku": "DEF456",
+          "quantity": 3
+        },
+        "expected_output": {
+          "sku": "DEF456",
+          "available": true,
+          "quantity": 3,
+          "status_code": 200
+        }
+      },
+      "v2_api": {
+        "endpoint": "/api/v2/stock/availability",
+        "method": "POST",
+        "input": {
+          "sku": "DEF456",
+          "quantity": 3,
+          "regionId": "us-east-1",
+          "warehouseGroup": "WG-1"
+        },
+        "expected_output": {
+          "sku": "DEF456",
+          "available": true,
+          "quantity": 3,
+          "availabilityStatus": "confirmed",
+          "syncTimestamp": "2025-11-07T10:00:00Z",
+          "status_code": 200
+        }
+      },
+      "acceptance_criteria": [
+        "v1 correctly reports quantity=3, available=true",
+        "v2 also confirms availability at exact threshold",
+        "No false negatives when quantity matches request"
+      ]
+    },
+    {
+      "id": "TC003",
+      "name": "Asynchronous/Partial Case - Pending Status with Polling",
+      "description": "v2 returns pending status requiring polling until final confirmation",
+      "v1_api": {
+        "endpoint": "/api/v1/checkStock",
+        "method": "POST",
+        "input": {
+          "sku": "GHI789",
+          "quantity": 10
+        },
+        "expected_output": {
+          "sku": "GHI789",
+          "available": true,
+          "quantity": 25,
+          "status_code": 200
+        }
+      },
+      "v2_api": {
+        "endpoint": "/api/v2/stock/availability",
+        "method": "POST",
+        "initial_response": {
+          "sku": "GHI789",
+          "availabilityStatus": "pending",
+          "requestId": "req-12345",
+          "pollAfter": 100,
+          "status_code": 202
+        },
+        "polling_response": {
+          "sku": "GHI789",
+          "available": true,
+          "quantity": 25,
+          "availabilityStatus": "confirmed",
+          "syncTimestamp": "2025-11-07T10:00:05Z",
+          "status_code": 200
+        }
+      },
+      "acceptance_criteria": [
+        "v1 returns synchronously (no polling)",
+        "v2 handles 202 Accepted and implements polling retry",
+        "Post-polling result matches expected availability",
+        "Service gracefully handles async latency"
+      ]
+    },
+    {
+      "id": "TC004",
+      "name": "Invalid/Malformed Input Case",
+      "description": "Missing or invalid parameters (missing regionId, invalid warehouseGroup, non-string SKU)",
+      "v1_api": {
+        "endpoint": "/api/v1/checkStock",
+        "method": "POST",
+        "input": {
+          "sku": "XYZ999",
+          "quantity": 5
+        },
+        "expected_output": {
+          "sku": "XYZ999",
+          "available": false,
+          "error": "Invalid parameters",
+          "status_code": 200
+        }
+      },
+      "v2_api": {
+        "endpoint": "/api/v2/stock/availability",
+        "method": "POST",
+        "input_variants": [
+          {
+            "description": "Missing regionId",
+            "input": {
+              "sku": "XYZ999",
+              "quantity": 5,
+              "warehouseGroup": "WG-1"
+            },
+            "expected_status_code": 400
+          },
+          {
+            "description": "Invalid warehouseGroup",
+            "input": {
+              "sku": "XYZ999",
+              "quantity": 5,
+              "regionId": "ap-sg-1",
+              "warehouseGroup": "INVALID-WG"
+            },
+            "expected_status_code": 400
+          },
+          {
+            "description": "Non-string SKU",
+            "input": {
+              "sku": 12345,
+              "quantity": 5,
+              "regionId": "ap-sg-1",
+              "warehouseGroup": "WG-1"
+            },
+            "expected_status_code": 400
+          }
+        ]
+      },
+      "acceptance_criteria": [
+        "v1 accepts missing regionId (legacy behavior)",
+        "v2 strictly validates all parameters and returns 400 on invalid input",
+        "Service adapter must handle v2 validation errors gracefully",
+        "Fallback to v1 or safe default when v2 validation fails"
+      ]
+    },
+    {
+      "id": "TC005",
+      "name": "High-Latency / Error Case - Timeout and Retry",
+      "description": "v2 endpoint timeout or 500 error requiring retry logic and fallback",
+      "v1_api": {
+        "endpoint": "/api/v1/checkStock",
+        "method": "POST",
+        "input": {
+          "sku": "JKL012",
+          "quantity": 7
+        },
+        "expected_output": {
+          "sku": "JKL012",
+          "available": true,
+          "quantity": 20,
+          "status_code": 200
+        }
+      },
+      "v2_api": {
+        "endpoint": "/api/v2/stock/availability",
+        "method": "POST",
+        "input": {
+          "sku": "JKL012",
+          "quantity": 7,
+          "regionId": "eu-west-1",
+          "warehouseGroup": "WG-3"
+        },
+        "failure_scenario": {
+          "description": "v2 experiences latency spike then timeout",
+          "attempts": [
+            {
+              "attempt": 1,
+              "latency_ms": 15000,
+              "status_code": 504
+            },
+            {
+              "attempt": 2,
+              "latency_ms": 8000,
+              "status_code": 504
+            },
+            {
+              "attempt": 3,
+              "latency_ms": 150,
+              "response": {
+                "sku": "JKL012",
+                "available": true,
+                "quantity": 20,
+                "availabilityStatus": "confirmed",
+                "syncTimestamp": "2025-11-07T10:00:10Z",
+                "status_code": 200
+              }
+            }
+          ],
+          "fallback_option": "Use v1 if v2 fails after 2 retries"
+        }
+      },
+      "acceptance_criteria": [
+        "v1 responds within SLA (< 500ms)",
+        "v2 with errors eventually recovers or triggers fallback",
+        "Retry logic implements exponential backoff (100ms, 200ms, etc.)",
+        "Circuit breaker prevents cascading failures",
+        "Fallback to v1 maintains user-facing availability"
+      ]
+    },
+    {
+      "id": "TC006",
+      "name": "Out of Stock Case",
+      "description": "Requested quantity exceeds available inventory",
+      "v1_api": {
+        "endpoint": "/api/v1/checkStock",
+        "method": "POST",
+        "input": {
+          "sku": "MNO345",
+          "quantity": 100
+        },
+        "expected_output": {
+          "sku": "MNO345",
+          "available": false,
+          "quantity": 5,
+          "status_code": 200
+        }
+      },
+      "v2_api": {
+        "endpoint": "/api/v2/stock/availability",
+        "method": "POST",
+        "input": {
+          "sku": "MNO345",
+          "quantity": 100,
+          "regionId": "ap-sg-1",
+          "warehouseGroup": "WG-2"
+        },
+        "expected_output": {
+          "sku": "MNO345",
+          "available": false,
+          "quantity": 5,
+          "availabilityStatus": "out_of_stock",
+          "syncTimestamp": "2025-11-07T10:00:00Z",
+          "status_code": 200
+        }
+      },
+      "acceptance_criteria": [
+        "v1 correctly reports available=false",
+        "v2 returns availabilityStatus='out_of_stock'",
+        "Cart service prevents order placement",
+        "User receives appropriate messaging"
+      ]
+    }
+  ],
+  "mock_configuration": {
+    "v1_base_url": "http://localhost:8001",
+    "v2_base_url": "http://localhost:8002",
+    "service_url": "http://localhost:8003",
+    "timeouts": {
+      "normal_request": 5000,
+      "polling_max_wait": 30000,
+      "retry_max_attempts": 3
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "test_case": "TC004",
+  "name": "Invalid/Malformed Input Case",
+  "description": "Validation differences between v1 (permissive) and v2 (strict)",
+  "pre_change_behavior": {
+    "missing_regionId": {
+      "request": {
+        "endpoint": "POST /api/v1/checkStock",
+        "payload": {
+          "sku": "XYZ999",
+          "quantity": 5
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "sku": "XYZ999",
+          "available": false,
+          "quantity": 0
+        },
+        "note": "v1 doesn't require regionId"
+      }
+    }
+  },
+  "post_change_behavior": {
+    "missing_regionId": {
+      "request": {
+        "endpoint": "POST /api/v2/stock/availability",
+        "payload": {
+          "sku": "XYZ999",
+          "quantity": 5,
+          "warehouseGroup": "WG-1"
+        },
+        "note": "regionId is missing but required"
+      },
+      "response": {
+        "status": 400,
+        "body": {
+          "error": "Missing regionId parameter"
+        }
+      }
+    },
+    "invalid_warehouseGroup": {
+      "request": {
+        "endpoint": "POST /api/v2/stock/availability",
+        "payload": {
+          "sku": "XYZ999",
+          "quantity": 5,
+          "regionId": "ap-sg-1",
+          "warehouseGroup": "INVALID-WG"
+        },
+        "note": "warehouseGroup must be one of: WG-1, WG-2, WG-3"
+      },
+      "response": {
+        "status": 400,
+        "body": {
+          "error": "Invalid warehouseGroup: INVALID-WG"
+        }
+      }
+    },
+    "non_string_sku": {
+      "request": {
+        "endpoint": "POST /api/v2/stock/availability",
+        "payload": {
+          "sku": 12345,
+          "quantity": 5,
+          "regionId": "ap-sg-1",
+          "warehouseGroup": "WG-1"
+        },
+        "note": "SKU must be a string"
+      },
+      "response": {
+        "status": 400,
+        "body": {
+          "error": "SKU must be a non-empty string"
+        }
+      }
+    }
+  },
+  "mitigation_strategy": {
+    "client_side": [
+      "Validate regionId and warehouseGroup before calling v2",
+      "Map user region/warehouse to known valid values",
+      "Fall back to v1 if parameters cannot be mapped"
+    ],
+    "api_side": [
+      "Return 400 for invalid inputs (prevents downstream errors)",
+      "Provide clear error messages with valid values",
+      "Log validation failures for debugging"
+    ]
+  }
+}
