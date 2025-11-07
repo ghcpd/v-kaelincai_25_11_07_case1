@@ -1,0 +1,43 @@
+[
+  {
+    "id": "normal",
+    "description": "Normal case where v2 returns confirmed availability",
+    "request": {"sku": "ABC123", "regionId": "ap-sg-1", "warehouseGroup": "WG-2"},
+    "v1_response": {"sku":"ABC123","available":true,"quantity":12},
+    "v2_response": {"sku":"ABC123","available":true,"quantity":12,"availabilityStatus":"confirmed"},
+    "expected": {"http_status":200,"available":true,"quantity":12,"note":"confirmed"}
+  },
+  {
+    "id": "boundary_zero",
+    "description": "Boundary case: quantity == 0",
+    "request": {"sku": "BOUNDARY1", "regionId": "us-east-1", "warehouseGroup": "WG-1"},
+    "v1_response": {"sku":"BOUNDARY1","available":false,"quantity":0},
+    "v2_response": {"sku":"BOUNDARY1","available":false,"quantity":0,"availabilityStatus":"confirmed"},
+    "expected": {"http_status":200,"available":false,"quantity":0,"note":"confirmed"}
+  },
+  {
+    "id": "async_pending",
+    "description": "Asynchronous/partial response — pending availability and later confirmed",
+    "request": {"sku": "ASYNC1", "regionId": "eu-west-1", "warehouseGroup": "WG-3"},
+    "v1_response": {"sku":"ASYNC1","available":true,"quantity":1},
+    "v2_response_initial": {"sku":"ASYNC1","available":false,"quantity":0,"availabilityStatus":"pending","syncTimestamp":"2025-11-01T12:00:00Z"},
+    "v2_response_final": {"sku":"ASYNC1","available":true,"quantity":1,"availabilityStatus":"confirmed"},
+    "expected": {"http_status":200,"available":true,"quantity":1,"note":"confirmed_after_poll"}
+  },
+  {
+    "id": "invalid_input",
+    "description": "Invalid/malformed inputs — missing regionId or invalid warehouseGroup",
+    "request": {"sku": 12345, "warehouseGroup": "INVALID"},
+    "v1_response": {"sku":"12345","available":true,"quantity":5},
+    "v2_response": {"error":"invalid_parameters","message":"regionId missing or invalid"},
+    "expected": {"http_status":200,"available":true,"quantity":5,"note":"fallback_to_v1"}
+  },
+  {
+    "id": "high_latency_error",
+    "description": "High latency or 500 error from v2 — service should retry or fallback to v1",
+    "request": {"sku": "LATENCY1", "regionId": "ap-sg-2", "warehouseGroup": "WG-1"},
+    "v1_response": {"sku":"LATENCY1","available":true,"quantity":3},
+    "v2_response_error": {"error":"timeout","status":500},
+    "expected": {"http_status":200,"available":true,"quantity":3,"note":"fallback_to_v1"}
+  }
+]
