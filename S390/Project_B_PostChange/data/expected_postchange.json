@@ -1,0 +1,7 @@
+{
+  "normal": {"sku":"ABC123","available":true,"quantity":12},
+  "boundary_zero": {"sku":"ZERO","available":false,"quantity":0},
+  "pending_then_confirm": {"sku":"PEND","available":true,"quantity":2},
+  "malformed": {"error": "missing regionId"},
+  "high_latency_error": {"sku":"SLOW","available":true,"quantity":1, "note_contains":"fallback"}
+}

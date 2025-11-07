@@ -1,0 +1,37 @@
+[
+  {
+    "id": "normal",
+    "description": "Normal case - v2 returns confirmed availability immediately (and v1 returns available)",
+    "input_v1": {"sku":"ABC123"},
+    "input_v2": {"sku":"ABC123","regionId":"ap-sg-1","warehouseGroup":"WG-2"},
+    "expected": {"http_status":200, "available":true, "quantity":12}
+  },
+  {
+    "id": "boundary_zero",
+    "description": "Boundary case - quantity 0",
+    "input_v1": {"sku":"ZERO"},
+    "input_v2": {"sku":"ZERO","regionId":"ap-sg-1","warehouseGroup":"WG-2"},
+    "expected": {"http_status":200, "available":false, "quantity":0}
+  },
+  {
+    "id": "async_pending",
+    "description": "Asynchronous pending case - v2 returns pending then confirmed",
+    "input_v1": {"sku":"PEND"},
+    "input_v2": {"sku":"PEND","regionId":"ap-sg-1","warehouseGroup":"WG-2"},
+    "expected": {"http_status":200, "available":true, "quantity":2}
+  },
+  {
+    "id": "malformed",
+    "description": "Invalid/malformed inputs - missing regionId for v2",
+    "input_v1": {"sku":"ABC123"},
+    "input_v2": {"sku":"ABC123"},
+    "expected": {"http_status":400, "available":false}
+  },
+  {
+    "id": "high_latency_error",
+    "description": "High latency or error - v2 times out, expect fallback to v1",
+    "input_v1": {"sku":"SLOW"},
+    "input_v2": {"sku":"SLOW","regionId":"ap-sg-1","warehouseGroup":"WG-2"},
+    "expected": {"http_status":200, "available":true, "quantity":1, "note_contains":"fallback"}
+  }
+]
