@@ -1,0 +1,185 @@
+# Comparison Report
+
+## Summary Metrics
+**Pre-change:** {'count': 5, 'p50': 2.0324478149414062, 'p95': 2.0325889587402344, 'pass_rate': 1.0}
+
+**Post-change:** {'count': 5, 'p50': 2.0333645343780518, 'p95': 2.0359046459198, 'pass_rate': 1.0}
+
+## Per-case details
+### Pre-change results
+[
+  {
+    "id": "normal",
+    "desc": "Normal case - immediate confirmed availability",
+    "result": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 12,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 12
+    },
+    "pass": true,
+    "duration": 2.0397067070007324
+  },
+  {
+    "id": "boundary_zero",
+    "desc": "Boundary case - quantity == 0",
+    "result": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0325889587402344
+  },
+  {
+    "id": "async_pending",
+    "desc": "Asynchronous pending case - availabilityStatus pending",
+    "result": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0324478149414062
+  },
+  {
+    "id": "invalid_input",
+    "desc": "Invalid input - missing regionId or non-string sku",
+    "result": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0322964191436768
+  },
+  {
+    "id": "high_latency",
+    "desc": "High latency / error case - v2 may timeout or 500",
+    "result": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 3,
+      "note": "v1"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 3
+    },
+    "pass": true,
+    "duration": 2.018481969833374
+  }
+]
+
+### Post-change results
+[
+  {
+    "id": "normal",
+    "desc": "Normal case - immediate confirmed availability",
+    "result": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 12,
+      "note": "confirmed"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 12
+    },
+    "pass": true,
+    "duration": 2.0359046459198
+  },
+  {
+    "id": "boundary_zero",
+    "desc": "Boundary case - quantity == 0",
+    "result": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0,
+      "note": "confirmed"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0333645343780518
+  },
+  {
+    "id": "async_pending",
+    "desc": "Asynchronous pending case - availabilityStatus pending",
+    "result": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 7,
+      "note": "confirmed_after_poll"
+    },
+    "expected": {
+      "http_status": 200,
+      "available": true,
+      "quantity": 7
+    },
+    "pass": true,
+    "duration": 5.066525459289551
+  },
+  {
+    "id": "invalid_input",
+    "desc": "Invalid input - missing regionId or non-string sku",
+    "result": {
+      "http_status": 0,
+      "available": false,
+      "quantity": 0,
+      "note": "validation:sku must be string"
+    },
+    "expected": {
+      "http_status": 0,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 0.0019311904907226562
+  },
+  {
+    "id": "high_latency",
+    "desc": "High latency / error case - v2 may timeout or 500",
+    "result": {
+      "http_status": 0,
+      "available": false,
+      "quantity": 0,
+      "note": "error:500 Server Error: Internal Server Error for url: http://localhost:8002/api/v2/stock/availability"
+    },
+    "expected": {
+      "http_status": 500,
+      "available": false,
+      "quantity": 0
+    },
+    "pass": true,
+    "duration": 2.0317223072052
+  }
+]
