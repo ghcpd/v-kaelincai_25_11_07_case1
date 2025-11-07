@@ -1,0 +1,7 @@
+[
+  {"id":"normal","expected":{"available":true,"quantity":12,"note":"v2_confirmed"}},
+  {"id":"boundary_zero","expected":{"available":false,"quantity":0,"note":"v2_confirmed"}},
+  {"id":"async_pending","expected":{"available":true,"quantity":1,"note":"v2_confirmed_after_poll"}},
+  {"id":"invalid_input","expected":{"available":true,"quantity":5,"note":"fallback_to_v1"}},
+  {"id":"high_latency_error","expected":{"available":true,"quantity":3,"note":"fallback_to_v1"}}
+]
