@@ -1,0 +1,126 @@
+{
+  "test_cases": [
+    {
+      "id": "normal_case",
+      "description": "Normal case - new API returns immediate confirmed availability",
+      "input": {
+        "sku": "ABC123",
+        "regionId": "ap-sg-1",
+        "warehouseGroup": "WG-2"
+      },
+      "expected_v1_input": {
+        "sku": "ABC123"
+      },
+      "expected_v2_response": {
+        "sku": "ABC123",
+        "available": true,
+        "quantity": 12,
+        "availabilityStatus": "confirmed",
+        "syncTimestamp": "2025-11-01T12:00:00Z"
+      },
+      "expected_output": {
+        "available": true,
+        "quantity": 12,
+        "note": "confirmed"
+      },
+      "pass_criteria": "HTTP 200, available=true, quantity > 0"
+    },
+    {
+      "id": "boundary_case_zero",
+      "description": "Boundary case - quantity exactly at zero",
+      "input": {
+        "sku": "XYZ789",
+        "regionId": "us-east-1",
+        "warehouseGroup": "WG-1"
+      },
+      "expected_v1_input": {
+        "sku": "XYZ789"
+      },
+      "expected_v2_response": {
+        "sku": "XYZ789",
+        "available": false,
+        "quantity": 0,
+        "availabilityStatus": "confirmed",
+        "syncTimestamp": "2025-11-01T12:01:00Z"
+      },
+      "expected_output": {
+        "available": false,
+        "quantity": 0,
+        "note": "out of stock"
+      },
+      "pass_criteria": "HTTP 200, available=false, quantity=0"
+    },
+    {
+      "id": "async_pending_case",
+      "description": "Asynchronous case - response with pending status",
+      "input": {
+        "sku": "DEF456",
+        "regionId": "eu-west-1",
+        "warehouseGroup": "WG-3"
+      },
+      "expected_v1_input": {
+        "sku": "DEF456"
+      },
+      "expected_v2_response": {
+        "sku": "DEF456",
+        "available": true,
+        "quantity": 5,
+        "availabilityStatus": "pending",
+        "syncTimestamp": "2025-11-01T12:02:00Z"
+      },
+      "expected_output": {
+        "available": true,
+        "quantity": 5,
+        "note": "pending verification"
+      },
+      "pass_criteria": "HTTP 200, available=true, handles pending status"
+    },
+    {
+      "id": "invalid_input",
+      "description": "Invalid input - missing regionId",
+      "input": {
+        "sku": "GHI789",
+        "warehouseGroup": "WG-1"
+      },
+      "expected_v1_input": {
+        "sku": "GHI789"
+      },
+      "expected_v2_response": {
+        "error": "Missing required parameter: regionId",
+        "status": 400
+      },
+      "expected_output": {
+        "available": false,
+        "quantity": 0,
+        "note": "validation error - fallback applied"
+      },
+      "pass_criteria": "Graceful fallback when v2 API validation fails"
+    },
+    {
+      "id": "high_latency_case",
+      "description": "High latency / timeout case",
+      "input": {
+        "sku": "JKL012",
+        "regionId": "ap-northeast-1",
+        "warehouseGroup": "WG-4"
+      },
+      "expected_v1_input": {
+        "sku": "JKL012"
+      },
+      "expected_v2_response": "TIMEOUT",
+      "expected_output": {
+        "available": false,
+        "quantity": 0,
+        "note": "timeout - fallback applied"
+      },
+      "pass_criteria": "Fallback to v1 or default when v2 times out"
+    }
+  ],
+  "configuration": {
+    "mock_v1_port": 8001,
+    "mock_v2_port": 8002,
+    "service_port": 8000,
+    "request_timeout": 5.0,
+    "retry_attempts": 2
+  }
+}
