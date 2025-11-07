@@ -1,0 +1,1 @@
+This folder will contain results_pre.json, results_post.json, aggregated_metrics.json after running run_all.sh.

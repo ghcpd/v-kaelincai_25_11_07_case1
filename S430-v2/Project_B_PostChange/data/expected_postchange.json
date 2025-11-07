@@ -1,0 +1,7 @@
+{
+  "normal": {"available": true, "quantity": 12},
+  "boundary_zero": {"available": false, "quantity": 0},
+  "async_pending": {"available": true, "quantity": 12},
+  "invalid_input": {"available": true, "quantity": 12, "fallback": true},
+  "v2_error": {"available": false, "quantity": 0, "fallback": true}
+}
