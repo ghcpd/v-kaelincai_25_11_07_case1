@@ -1,0 +1,32 @@
+[
+  {
+    "id": "normal",
+    "description": "Normal — v2 returns immediate confirmed availability",
+    "input": {"sku":"ABC123","quantity":1,"regionId":"ap-sg-1","warehouseGroup":"WG-2","mode":"confirm"},
+    "expected": {"http_status":200,"available":true,"quantity":12,"fallback":false}
+  },
+  {
+    "id": "boundary_zero",
+    "description": "Boundary — quantity 0 should be out of stock",
+    "input": {"sku":"ABC123","quantity":0,"regionId":"ap-sg-1","warehouseGroup":"WG-2","mode":"confirm"},
+    "expected": {"http_status":200,"available":false,"quantity":0,"fallback":false}
+  },
+  {
+    "id": "async_pending",
+    "description": "Asynchronous/partial — v2 returns pending first and then confirmed after poll",
+    "input": {"sku":"PEND1","quantity":1,"regionId":"ap-sg-1","warehouseGroup":"WG-2","mode":"pending_first"},
+    "expected": {"http_status":200,"available":true,"quantity":12,"fallback":false}
+  },
+  {
+    "id": "invalid_input",
+    "description": "Invalid input — missing regionId should fallback to v1",
+    "input": {"sku":"ABC123","quantity":1,"warehouseGroup":"WG-2","mode":"confirm"},
+    "expected": {"http_status":200,"available":true,"quantity":12,"fallback":true}
+  },
+  {
+    "id": "v2_error",
+    "description": "High-latency / error — v2 returns 500 and service should fallback",
+    "input": {"sku":"ERRSKU","quantity":1,"regionId":"ap-sg-1","warehouseGroup":"WG-2","mode":"error"},
+    "expected": {"http_status":500,"available":false,"quantity":0,"fallback":true}
+  }
+]
