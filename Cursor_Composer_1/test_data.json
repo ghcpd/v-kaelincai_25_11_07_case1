@@ -1,0 +1,177 @@
+[
+    {
+        "test_id": "TC001",
+        "name": "Normal case - Available stock",
+        "description": "Standard availability check with confirmed stock",
+        "pre_change": {
+            "input": {"sku": "ABC123"},
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 12,
+                "note": "legacy_api"
+            }
+        },
+        "post_change": {
+            "input": {
+                "sku": "ABC123",
+                "regionId": "ap-sg-1",
+                "warehouseGroup": "WG-2"
+            },
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 12,
+                "availability_status": "confirmed",
+                "note": "v2_confirmed"
+            }
+        },
+        "category": "normal"
+    },
+    {
+        "test_id": "TC002",
+        "name": "Boundary case - Zero quantity",
+        "description": "SKU with quantity exactly 0",
+        "pre_change": {
+            "input": {"sku": "XYZ789"},
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 0,
+                "note": "legacy_api"
+            }
+        },
+        "post_change": {
+            "input": {
+                "sku": "XYZ789",
+                "regionId": "ap-sg-1",
+                "warehouseGroup": "WG-1"
+            },
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 0,
+                "availability_status": "confirmed",
+                "note": "v2_confirmed"
+            }
+        },
+        "category": "boundary"
+    },
+    {
+        "test_id": "TC003",
+        "name": "Asynchronous/Partial case",
+        "description": "Response with availabilityStatus: pending and syncTimestamp",
+        "pre_change": {
+            "input": {"sku": "DEF456"},
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 5,
+                "note": "legacy_api"
+            }
+        },
+        "post_change": {
+            "input": {
+                "sku": "DEF456",
+                "regionId": "ap-sg-1",
+                "warehouseGroup": "WG-1"
+            },
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 5,
+                "availability_status": "pending",
+                "sync_timestamp": "present",
+                "note": "v2_pending"
+            }
+        },
+        "category": "async"
+    },
+    {
+        "test_id": "TC004",
+        "name": "Invalid input - Missing required parameter",
+        "description": "Request with missing required parameter",
+        "pre_change": {
+            "input": {},
+            "expected": {
+                "status_code": 400,
+                "available": false,
+                "error": "Missing SKU",
+                "note": "request_error"
+            }
+        },
+        "post_change": {
+            "input": {
+                "sku": "ABC123",
+                "regionId": "ap-sg-1"
+            },
+            "expected": {
+                "status_code": 400,
+                "available": false,
+                "error": "Missing warehouseGroup",
+                "note": "validation_error"
+            }
+        },
+        "category": "invalid"
+    },
+    {
+        "test_id": "TC005",
+        "name": "Non-existent SKU/Region",
+        "description": "SKU or region combination not found",
+        "pre_change": {
+            "input": {"sku": "NONEXISTENT"},
+            "expected": {
+                "status_code": 200,
+                "available": false,
+                "quantity": 0,
+                "note": "legacy_api"
+            }
+        },
+        "post_change": {
+            "input": {
+                "sku": "ABC123",
+                "regionId": "us-west-2",
+                "warehouseGroup": "WG-3"
+            },
+            "expected": {
+                "status_code": 200,
+                "available": false,
+                "quantity": 0,
+                "availability_status": "confirmed",
+                "note": "v2_confirmed"
+            }
+        },
+        "category": "boundary"
+    },
+    {
+        "test_id": "TC006",
+        "name": "High latency case",
+        "description": "Simulated high latency response",
+        "pre_change": {
+            "input": {"sku": "DEF456"},
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 5,
+                "latency_ms": ">50",
+                "note": "legacy_api"
+            }
+        },
+        "post_change": {
+            "input": {
+                "sku": "JKL012",
+                "regionId": "ap-sg-1",
+                "warehouseGroup": "WG-1"
+            },
+            "expected": {
+                "status_code": 200,
+                "available": true,
+                "quantity": 100,
+                "latency_ms": ">60",
+                "note": "v2_confirmed"
+            }
+        },
+        "category": "performance"
+    }
+]
+

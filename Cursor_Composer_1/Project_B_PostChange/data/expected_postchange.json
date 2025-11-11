@@ -1,0 +1,50 @@
+{
+    "description": "Expected outputs for post-change test cases",
+    "test_cases": {
+        "TC001": {
+            "description": "Normal confirmed availability",
+            "expected_output": {
+                "available": true,
+                "quantity": 12,
+                "availability_status": "confirmed",
+                "source": "v2"
+            }
+        },
+        "TC002": {
+            "description": "Zero quantity boundary case",
+            "expected_output": {
+                "available": true,
+                "quantity": 0,
+                "availability_status": "confirmed",
+                "source": "v2"
+            }
+        },
+        "TC003": {
+            "description": "Pending async status",
+            "expected_output": {
+                "available": true,
+                "quantity": 5,
+                "availability_status": "pending",
+                "sync_timestamp": "present",
+                "source": "v2"
+            }
+        },
+        "TC004": {
+            "description": "Missing regionId validation",
+            "expected_output": {
+                "available": false,
+                "error": "Missing regionId",
+                "status_code": 400
+            }
+        },
+        "TC005": {
+            "description": "Missing warehouseGroup validation",
+            "expected_output": {
+                "available": false,
+                "error": "Missing warehouseGroup",
+                "status_code": 400
+            }
+        }
+    }
+}
+
