@@ -1,0 +1,92 @@
+[
+    {
+        "test_id": "TC001",
+        "name": "Normal case - Available stock",
+        "description": "Standard availability check with confirmed stock",
+        "input": {
+            "sku": "ABC123"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": true,
+            "quantity": 12,
+            "note": "legacy_api"
+        },
+        "category": "normal"
+    },
+    {
+        "test_id": "TC002",
+        "name": "Boundary case - Zero quantity",
+        "description": "SKU with quantity exactly 0",
+        "input": {
+            "sku": "XYZ789"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": true,
+            "quantity": 0,
+            "note": "legacy_api"
+        },
+        "category": "boundary"
+    },
+    {
+        "test_id": "TC003",
+        "name": "Out of stock case",
+        "description": "SKU marked as unavailable",
+        "input": {
+            "sku": "GHI789"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": false,
+            "quantity": 0,
+            "note": "legacy_api"
+        },
+        "category": "normal"
+    },
+    {
+        "test_id": "TC004",
+        "name": "Invalid input - Missing SKU",
+        "description": "Request with missing SKU parameter",
+        "input": {},
+        "expected": {
+            "status_code": 400,
+            "available": false,
+            "error": "Missing SKU",
+            "note": "request_error"
+        },
+        "category": "invalid"
+    },
+    {
+        "test_id": "TC005",
+        "name": "Non-existent SKU",
+        "description": "SKU not found in database",
+        "input": {
+            "sku": "NONEXISTENT"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": false,
+            "quantity": 0,
+            "note": "legacy_api"
+        },
+        "category": "boundary"
+    },
+    {
+        "test_id": "TC006",
+        "name": "High latency case",
+        "description": "Simulated high latency response",
+        "input": {
+            "sku": "DEF456"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": true,
+            "quantity": 5,
+            "latency_ms": ">50",
+            "note": "legacy_api"
+        },
+        "category": "performance"
+    }
+]
+

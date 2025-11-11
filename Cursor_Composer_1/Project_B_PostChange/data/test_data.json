@@ -1,0 +1,144 @@
+[
+    {
+        "test_id": "TC001",
+        "name": "Normal case - Confirmed availability",
+        "description": "Standard availability check with confirmed status",
+        "input": {
+            "sku": "ABC123",
+            "regionId": "ap-sg-1",
+            "warehouseGroup": "WG-2"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": true,
+            "quantity": 12,
+            "availability_status": "confirmed",
+            "note": "v2_confirmed"
+        },
+        "category": "normal"
+    },
+    {
+        "test_id": "TC002",
+        "name": "Boundary case - Zero quantity",
+        "description": "SKU with quantity exactly 0",
+        "input": {
+            "sku": "XYZ789",
+            "regionId": "ap-sg-1",
+            "warehouseGroup": "WG-1"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": true,
+            "quantity": 0,
+            "availability_status": "confirmed",
+            "note": "v2_confirmed"
+        },
+        "category": "boundary"
+    },
+    {
+        "test_id": "TC003",
+        "name": "Asynchronous/Partial case - Pending status",
+        "description": "Response with availabilityStatus: pending and syncTimestamp",
+        "input": {
+            "sku": "DEF456",
+            "regionId": "ap-sg-1",
+            "warehouseGroup": "WG-1"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": true,
+            "quantity": 5,
+            "availability_status": "pending",
+            "sync_timestamp": "present",
+            "note": "v2_pending"
+        },
+        "category": "async"
+    },
+    {
+        "test_id": "TC004",
+        "name": "Invalid input - Missing regionId",
+        "description": "Request with missing regionId parameter",
+        "input": {
+            "sku": "ABC123",
+            "warehouseGroup": "WG-2"
+        },
+        "expected": {
+            "status_code": 400,
+            "available": false,
+            "error": "Missing regionId",
+            "note": "validation_error"
+        },
+        "category": "invalid"
+    },
+    {
+        "test_id": "TC005",
+        "name": "Invalid input - Missing warehouseGroup",
+        "description": "Request with missing warehouseGroup parameter",
+        "input": {
+            "sku": "ABC123",
+            "regionId": "ap-sg-1"
+        },
+        "expected": {
+            "status_code": 400,
+            "available": false,
+            "error": "Missing warehouseGroup",
+            "note": "validation_error"
+        },
+        "category": "invalid"
+    },
+    {
+        "test_id": "TC006",
+        "name": "Non-existent region/warehouse",
+        "description": "Valid SKU but region/warehouse combination not found",
+        "input": {
+            "sku": "ABC123",
+            "regionId": "us-west-2",
+            "warehouseGroup": "WG-3"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": false,
+            "quantity": 0,
+            "availability_status": "confirmed",
+            "note": "v2_confirmed"
+        },
+        "category": "boundary"
+    },
+    {
+        "test_id": "TC007",
+        "name": "Out of stock case",
+        "description": "SKU marked as unavailable in region",
+        "input": {
+            "sku": "GHI789",
+            "regionId": "ap-sg-1",
+            "warehouseGroup": "WG-1"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": false,
+            "quantity": 0,
+            "availability_status": "confirmed",
+            "note": "v2_confirmed"
+        },
+        "category": "normal"
+    },
+    {
+        "test_id": "TC008",
+        "name": "High latency case",
+        "description": "Simulated high latency response",
+        "input": {
+            "sku": "JKL012",
+            "regionId": "ap-sg-1",
+            "warehouseGroup": "WG-1"
+        },
+        "expected": {
+            "status_code": 200,
+            "available": true,
+            "quantity": 100,
+            "latency_ms": ">60",
+            "note": "v2_confirmed"
+        },
+        "category": "performance"
+    }
+]
+
